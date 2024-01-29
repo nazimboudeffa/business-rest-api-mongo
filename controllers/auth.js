@@ -1,14 +1,8 @@
 import Joi from "joi";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import UserModel from "../models/user.js";
-import config from "../config/index.js";
-
-// Generate JWT
-const generateToken = (id) => {
-    return jwt.sign({ id }, config.jwtSecret, { expiresIn: "30d" });
-  };
+import { generateToken, saveToken } from "../services/token.js";
 
 const register = asyncHandler(async (req, res) => {
     const { body } = req
@@ -17,7 +11,6 @@ const register = asyncHandler(async (req, res) => {
       password: Joi.string().required(),
     })
     const { value, error } = schema.validate(body)
-  console.log(value, error)
     if (error) {
       throw error
     }
@@ -47,10 +40,13 @@ const register = asyncHandler(async (req, res) => {
     });
   
     if (user) {
+      const token = generateToken(user._id);
+      saveToken(token, user.id)
+
       res.status(201).json({
         _id: user.id,
         email: user.email,
-        token: generateToken(user._id),
+        token: token,
       });
     } else {
       res.status(400);
