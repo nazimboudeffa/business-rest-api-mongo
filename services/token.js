@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 import config from "../config/index.js";
 
 // Generate JWT
-const generateToken = (id) => {
-    return jwt.sign({ id }, config.jwtSecret, { expiresIn: "30d" });
+const generateToken = (userId) => {
+    return jwt.sign({ userId }, config.jwtSecret, { expiresIn: "30d" });
 };
 
 const setTokenCookie = async (token, res) => {
