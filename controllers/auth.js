@@ -2,31 +2,31 @@ import Joi from "joi";
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import UserModel from "../models/user.js";
-import { generateToken, saveToken } from "../services/token.js";
+import { generateToken, setTokenCookie } from "../services/token.js";
 
 const register = asyncHandler(async (req, res) => {
+  try {  
     const { body } = req
     const schema = Joi.object().keys({
       email: Joi.string().required(),
       password: Joi.string().required(),
     })
     const { value, error } = schema.validate(body)
+    
     if (error) {
-      throw error
+      return res.status(400).json({ error: "Email and password are required" });
     }
 
     const { email, password } = value
   
     if (!email || !password) {
-      res.status(400);
-      throw new Error("Please add all fields");
+      return res.status(400).json({ error: "Please add all fields" });
     }
   
     // check if user exists
     const userExists = await UserModel.findOne({ email });
     if (userExists) {
-      res.status(400);
-      throw new Error("User already exists");
+      res.status(400).json({ error: "User already exists" });
     }
   
     // create hash password
@@ -41,44 +41,55 @@ const register = asyncHandler(async (req, res) => {
   
     if (user) {
       const token = generateToken(user._id);
-      saveToken(token, user.id)
+      setTokenCookie(token);
 
       res.status(201).json({
+        user: {
         _id: user.id,
         email: user.email,
+        },
         token: token,
       });
     } else {
-      res.status(400);
-      throw new Error("Invalid user data");
+      res.status(400).json({ error: "Invalid user data" });
     }
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-  res.status(400);
-  throw new Error("Please add all fields");
+  res.status(400).json({ error: "Please add all fields" });
   }
 
   // Check for user email
   const user = await UserModel.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
-  res.json({
-      _id: user.id,
-      email: user.email,
-      token: generateToken(user._id),
-  });
+    const token = generateToken(user._id);
+    setTokenCookie(token);
+    res.json({
+      user: {
+        _id: user.id,
+        email: user.email,
+      },
+      token: token,
+    });
   } else {
-  res.status(400);
-  throw new Error("Invalid credentials");
+    res.status(400).json({ error: "Invalid credentials" });
   }
 });
 
 const logout = asyncHandler(async (req, res) => {
-    res.send("Logout");
+  try {
+      res.cookie("jwt", "", { maxAge: 0 });
+      res.status(200).json({ message: "Logged out successfully" });
+	} catch (error) {
+		  res.status(500).json({ error: "Internal Server Error" });
+	}
 });
 
 const forgotPassword = asyncHandler(async (req, res) => {

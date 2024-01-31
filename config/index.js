@@ -39,6 +39,8 @@ const config = {
   api: {
     prefix: "/api/v1",
   },
+
+  env: process.env.NODE_ENV || "development",
 }
 
 export default config
