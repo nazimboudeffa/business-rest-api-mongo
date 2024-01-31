@@ -41,7 +41,7 @@ const register = asyncHandler(async (req, res) => {
   
     if (user) {
       const token = generateToken(user._id);
-      setTokenCookie(token);
+      setTokenCookie(token, res);
 
       res.status(201).json({
         user: {
@@ -70,7 +70,7 @@ const login = asyncHandler(async (req, res) => {
 
   if (user && (await bcrypt.compare(password, user.password))) {
     const token = generateToken(user._id);
-    setTokenCookie(token);
+    setTokenCookie(token, res);
     res.json({
       user: {
         _id: user.id,
@@ -104,4 +104,4 @@ const sendVerificationEmail = asyncHandler(async (req, res) => {
 const verifyEmail = asyncHandler(async (req, res) => {
 });
 
-export { login, register };
+export { register, login, logout };
