@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const ThingSchema = new mongoose.Schema({
+const IdeaSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -20,6 +20,6 @@ const ThingSchema = new mongoose.Schema({
     }
 })
 
-let ThingModel = mongoose.model('Thing', ThingSchema);
+let IdeaModel = mongoose.model('Idea', IdeaSchema);
 
-export default ThingModel;
+export default IdeaModel;

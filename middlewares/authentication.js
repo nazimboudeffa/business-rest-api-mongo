@@ -1,17 +1,32 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
 import config from '../config/index.js';
 
-export default (req, res, next) => {
-  if(req.headers.authorization?.startsWith('Bearer')) {
-    try {
-        const token = req.headers.authorization.split(' ')[1]
-        const decoded = jwt.verify(token, config.jwtSecret);
-        //attach the user to the jobs route
-        req.user = {_id : decoded.id};
-        next();
-    } catch (error) {
-        res.status(401).json({success : false, error : error.message});
-        throw new Error('Not Authorized')
-    }
-  }
+export default async (req, res, next) => {
+  try {
+		const token = req.cookies.jwt;
+
+		if (!token) {
+			return res.status(401).json({ error: "Unauthorized - No Token Provided" });
+		}
+
+		const decoded = jwt.verify(token, config.jwtSecret);
+
+		if (!decoded) {
+			return res.status(401).json({ error: "Unauthorized - Invalid Token" });
+		}
+
+		const user = await User.findById(decoded.userId).select("-password");
+
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		req.user = user;
+
+		next();
+	} catch (error) {
+		console.log("Error in protectRoute middleware: ", error.message);
+		res.status(500).json({ error: "Internal server error" });
+	}
 }

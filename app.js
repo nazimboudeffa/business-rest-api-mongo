@@ -1,7 +1,8 @@
 import 'dotenv/config'
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { connectDB } from './db/connection.js';
-import { thingsRoutes } from './routes/things.js';
+import { ideasRoutes } from './routes/ideas.js';
 import { usersRoutes } from './routes/users.js';
 import { authRoutes } from './routes/auth.js';
 
@@ -9,13 +10,14 @@ const app = express();
 const port = process.env.PORT || 9000;
 
 app.use(express.json());
+app.use(cookieParser());
 
 //routes
 app.get('/health', (req, res)=> {
     res.send('Rest API is healthy');
 });
 
-app.use('/', thingsRoutes);
+app.use('/ideas', ideasRoutes);
 
 app.use('/users', usersRoutes);
 
