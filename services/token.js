@@ -15,4 +15,4 @@ const setTokenCookie = async (token, res) => {
     });
 }
 
-export { generateToken }
+export { generateToken, setTokenCookie }
